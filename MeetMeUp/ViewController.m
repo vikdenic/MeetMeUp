@@ -9,12 +9,13 @@
 #import "ViewController.h"
 #import "DetailViewController.h"
 
-@interface ViewController ()<UITableViewDelegate, UITableViewDataSource>
+@interface ViewController ()<UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
+
 @property NSDictionary *meetupDictionary;
 @property NSArray *resultsArray;
 @property (weak, nonatomic) IBOutlet UITableView *meetupTableView;
 @property NSDictionary *selectedDictionary;
-@property (weak, nonatomic) IBOutlet UITextField *searchTextField;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 
 @end
 
@@ -23,6 +24,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.searchBar.delegate = self;
+
     //Capture API via url
     NSURL *url = [NSURL URLWithString:@"https://api.meetup.com/2/open_events.json?zip=60604&text=mobile&time=,1w&key=7036607661154773506d1d386155a3f"];
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
@@ -47,7 +50,7 @@
 -(void)searchMethod
 {
     // Creates string of url with searched term in placeholder
-    NSString *userEntered = [NSString stringWithFormat:@"https://api.meetup.com/2/open_events.json?zip=60604&text=%@&time=,1w&key=7036607661154773506d1d386155a3f", self.searchTextField.text];
+    NSString *userEntered = [NSString stringWithFormat:@"https://api.meetup.com/2/open_events.json?zip=60604&text=%@&time=,1w&key=7036607661154773506d1d386155a3f", self.searchBar.text];
 
     // Capture new API from searched term
     NSURL *url = [NSURL URLWithString:userEntered];
@@ -65,15 +68,7 @@
          [self.meetupTableView reloadData];
      }];
     // Hides keyboard upon search
-    [self.searchTextField resignFirstResponder];
-}
-
-#pragma mark - Actions
-
-- (IBAction)onSearchButtonPressed:(id)sender
-{
-    // Call custom method that accesses API of searched term
-    [self searchMethod];
+    [self.searchBar resignFirstResponder];
 }
 
 #pragma mark - Datasource Delegates
@@ -91,7 +86,16 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"meetupCell"];
     cell.detailTextLabel.text = [[[self.resultsArray objectAtIndex:indexPath.row] objectForKey:@"venue"]objectForKey:@"address_1"];
     cell.textLabel.text = [[[self.resultsArray objectAtIndex:indexPath.row] objectForKey:@"group"]objectForKey:@"name"];
+
     return cell;
+}
+
+#pragma mark - Search Delegate
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+{
+    // Call custom method that accesses API of searched term
+    [self searchMethod];
 }
 
 #pragma mark - PrepareForSegue
@@ -101,6 +105,5 @@
     DetailViewController *detailVC = segue.destinationViewController;
     detailVC.passedDictionary = self.selectedDictionary;
 }
-
 
 @end
