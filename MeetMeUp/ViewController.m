@@ -13,9 +13,12 @@
 
 @property NSDictionary *meetupDictionary;
 @property NSArray *resultsArray;
+@property NSArray *resultsArray2;
 @property (weak, nonatomic) IBOutlet UITableView *meetupTableView;
 @property NSDictionary *selectedDictionary;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+
+@property UIImage *thumbImage;
 
 @end
 
@@ -43,6 +46,9 @@
                 [self.meetupTableView reloadData];
             }
      ];
+
+    // Run custom search method on term "mobile"
+    [self searchMethod];
 }
 
 #pragma mark - Custom methods
@@ -50,7 +56,9 @@
 -(void)searchMethod
 {
     // Creates string of url with searched term in placeholder
-    NSString *userEntered = [NSString stringWithFormat:@"https://api.meetup.com/2/open_events.json?zip=60604&text=%@&time=,1w&key=7036607661154773506d1d386155a3f", self.searchBar.text];
+
+    // Added " &fields=group_photo " to URL in order to access photos
+    NSString *userEntered = [NSString stringWithFormat:@"https://api.meetup.com/2/open_events.json?zip=60604&text=%@&time=,1w&key=7036607661154773506d1d386155a3f&fields=group_photo", self.searchBar.text];
 
     // Capture new API from searched term
     NSURL *url = [NSURL URLWithString:userEntered];
@@ -86,6 +94,13 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"meetupCell"];
     cell.detailTextLabel.text = [[[self.resultsArray objectAtIndex:indexPath.row] objectForKey:@"venue"]objectForKey:@"address_1"];
     cell.textLabel.text = [[[self.resultsArray objectAtIndex:indexPath.row] objectForKey:@"group"]objectForKey:@"name"];
+
+    // Accesses group_photo dictionary followed by group thumbnail photo
+    NSDictionary *groupPhotoDictionary = [[[self.resultsArray objectAtIndex:indexPath.row] objectForKey:@"group"]objectForKey:@"group_photo"];
+    NSURL *thumbURL = [NSURL URLWithString:[groupPhotoDictionary objectForKey:@"thumb_link"]];
+    self.thumbImage = [UIImage imageWithData:[NSData dataWithContentsOfURL:thumbURL]];
+    // Sets cell's image
+    cell.imageView.image = self.thumbImage;
 
     return cell;
 }
